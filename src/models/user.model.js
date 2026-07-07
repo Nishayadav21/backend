@@ -11,18 +11,18 @@ const userSchema = new mongoose.Schema(
     },
 
     email: {
-  type: String,
-  required: true,
-  unique: true,
-  lowercase: true,
-  trim: true,
-  match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"]
-},
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
+    },
 
     password: {
       type: String,
       required: true,
-      minlength: 8,
+      minlength: 6,
     },
 
     role: {
@@ -36,15 +36,20 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+
 /* ===========================
    Password Hashing
 =========================== */
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+
+  if (!this.isModified("password")) {
+    return;
+  }
 
   this.password = await bcrypt.hash(this.password, 10);
-  next();
+
 });
+
 
 /* ===========================
    Compare Password
@@ -53,10 +58,12 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
+
 /* ===========================
    JWT Token
 =========================== */
 userSchema.methods.generateAccessToken = function () {
+
   return jwt.sign(
     {
       _id: this._id,
@@ -69,7 +76,9 @@ userSchema.methods.generateAccessToken = function () {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
     }
   );
+
 };
+
 
 const User = mongoose.model("User", userSchema);
 
